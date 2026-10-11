@@ -196,6 +196,8 @@
     "source_branch": "main",
     "source_commit": "0b28b1df8eca9aaf7417ee038d3b6059e550b382",
     "source_pushed": false,
-    "remote_content_files": 281
+    "remote_content_files": 281,
+    "publication_record_commit": "4b17011a76ab79ab26cfa25e627bca591473cad6",
+    "remote_files_with_release_record": 282
   }
 }
