@@ -1,0 +1,188 @@
+{
+  "timestamp": "2026-10-11T23:01:34.948172+08:00",
+  "package": "Cos_VQ",
+  "python": "3.11.0 | packaged by conda-forge | (main, Jan 14 2023, 12:28:47) [GCC 11.3.0]",
+  "checks": [
+    {
+      "name": "pipeline_contract_tests",
+      "argv": [
+        "/data01/home/zukang.xu/anaconda3/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_reproduction_pipeline.py"
+      ],
+      "exit_code": 0,
+      "stdout": "............                                                             [100%]\n12 passed in 0.03s\n",
+      "stderr": ""
+    },
+    {
+      "name": "shell_syntax__run_model.sh",
+      "argv": [
+        "bash",
+        "-n",
+        "/data01/home/zukang.xu/workspace/ai_agent/paper_wrighting/papers/tmp_stom/code/Cos_VQ/scripts/reproduce_accuracy/_run_model.sh"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "shell_syntax_llama2_7b.sh",
+      "argv": [
+        "bash",
+        "-n",
+        "/data01/home/zukang.xu/workspace/ai_agent/paper_wrighting/papers/tmp_stom/code/Cos_VQ/scripts/reproduce_accuracy/llama2_7b.sh"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "launcher_dry_run_llama2_7b.sh",
+      "argv": [
+        "/data01/home/zukang.xu/workspace/ai_agent/paper_wrighting/papers/tmp_stom/code/Cos_VQ/scripts/reproduce_accuracy/llama2_7b.sh",
+        "--run-stamp",
+        "20261011_230133",
+        "--dry-run"
+      ],
+      "exit_code": 0,
+      "stdout": "Full dry-run plan generated successfully; no training or downloads.",
+      "stderr": ""
+    },
+    {
+      "name": "shell_syntax_llama3_1_8b_instruct.sh",
+      "argv": [
+        "bash",
+        "-n",
+        "/data01/home/zukang.xu/workspace/ai_agent/paper_wrighting/papers/tmp_stom/code/Cos_VQ/scripts/reproduce_accuracy/llama3_1_8b_instruct.sh"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "launcher_dry_run_llama3_1_8b_instruct.sh",
+      "argv": [
+        "/data01/home/zukang.xu/workspace/ai_agent/paper_wrighting/papers/tmp_stom/code/Cos_VQ/scripts/reproduce_accuracy/llama3_1_8b_instruct.sh",
+        "--run-stamp",
+        "20261011_230133",
+        "--dry-run"
+      ],
+      "exit_code": 0,
+      "stdout": "Full dry-run plan generated successfully; no training or downloads.",
+      "stderr": ""
+    },
+    {
+      "name": "shell_syntax_qwen3_14b.sh",
+      "argv": [
+        "bash",
+        "-n",
+        "/data01/home/zukang.xu/workspace/ai_agent/paper_wrighting/papers/tmp_stom/code/Cos_VQ/scripts/reproduce_accuracy/qwen3_14b.sh"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "launcher_dry_run_qwen3_14b.sh",
+      "argv": [
+        "/data01/home/zukang.xu/workspace/ai_agent/paper_wrighting/papers/tmp_stom/code/Cos_VQ/scripts/reproduce_accuracy/qwen3_14b.sh",
+        "--run-stamp",
+        "20261011_230133",
+        "--dry-run"
+      ],
+      "exit_code": 0,
+      "stdout": "Full dry-run plan generated successfully; no training or downloads.",
+      "stderr": ""
+    },
+    {
+      "name": "shell_syntax_qwen3_32b.sh",
+      "argv": [
+        "bash",
+        "-n",
+        "/data01/home/zukang.xu/workspace/ai_agent/paper_wrighting/papers/tmp_stom/code/Cos_VQ/scripts/reproduce_accuracy/qwen3_32b.sh"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "launcher_dry_run_qwen3_32b.sh",
+      "argv": [
+        "/data01/home/zukang.xu/workspace/ai_agent/paper_wrighting/papers/tmp_stom/code/Cos_VQ/scripts/reproduce_accuracy/qwen3_32b.sh",
+        "--run-stamp",
+        "20261011_230133",
+        "--dry-run"
+      ],
+      "exit_code": 0,
+      "stdout": "Full dry-run plan generated successfully; no training or downloads.",
+      "stderr": ""
+    },
+    {
+      "name": "shell_syntax_qwen3_4b.sh",
+      "argv": [
+        "bash",
+        "-n",
+        "/data01/home/zukang.xu/workspace/ai_agent/paper_wrighting/papers/tmp_stom/code/Cos_VQ/scripts/reproduce_accuracy/qwen3_4b.sh"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "launcher_dry_run_qwen3_4b.sh",
+      "argv": [
+        "/data01/home/zukang.xu/workspace/ai_agent/paper_wrighting/papers/tmp_stom/code/Cos_VQ/scripts/reproduce_accuracy/qwen3_4b.sh",
+        "--run-stamp",
+        "20261011_230133",
+        "--dry-run"
+      ],
+      "exit_code": 0,
+      "stdout": "Full dry-run plan generated successfully; no training or downloads.",
+      "stderr": ""
+    },
+    {
+      "name": "shell_syntax_qwen3_8b.sh",
+      "argv": [
+        "bash",
+        "-n",
+        "/data01/home/zukang.xu/workspace/ai_agent/paper_wrighting/papers/tmp_stom/code/Cos_VQ/scripts/reproduce_accuracy/qwen3_8b.sh"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "launcher_dry_run_qwen3_8b.sh",
+      "argv": [
+        "/data01/home/zukang.xu/workspace/ai_agent/paper_wrighting/papers/tmp_stom/code/Cos_VQ/scripts/reproduce_accuracy/qwen3_8b.sh",
+        "--run-stamp",
+        "20261011_230133",
+        "--dry-run"
+      ],
+      "exit_code": 0,
+      "stdout": "Full dry-run plan generated successfully; no training or downloads.",
+      "stderr": ""
+    },
+    {
+      "name": "python_ast_parse",
+      "exit_code": 0
+    },
+    {
+      "name": "project_lock_name_consistency",
+      "exit_code": 0
+    },
+    {
+      "name": "historical_result_exact_copy",
+      "exit_code": 0,
+      "sha256": "344110182b749c9307d60c158434fcd9e1ac27e09a71ba1532fadb065cd37e86"
+    },
+    {
+      "name": "uv_lock_check_offline",
+      "exit_code": 0,
+      "stdout": "Resolved 280 packages in 5ms; dependency graph unchanged."
+    }
+  ],
+  "gpu_experiments_run": false
+}

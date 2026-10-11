@@ -1,0 +1,67 @@
+model:
+  name: Qwen/Qwen3-8B
+  device: cuda
+  dtype: bfloat16
+
+data:
+  dataset_name: fineweb_edu
+  batch_size: 64
+  num_samples: 4096
+  val_samples: 128
+  max_length: 4096
+  num_workers: 8
+  seed: 0
+  shuffle_seed: 1234
+
+quantization:
+  gsq_bits: 2
+  init_method: gptq
+  gsq_enabled: true
+  start_layer: 0
+  self_attn: true
+  std: 0.01
+  temperature: [2.0, 0.05]
+  scale: [100, 500]
+  groupsize: 128
+  strength: 6
+  logits_dtype: bfloat16
+
+training:
+  num_epochs: 20
+  # A complete logical batch fits on the 48 GiB A6000 for most phases.  If a
+  # wider layer exceeds the limit, the trainer retries 64 -> 32 -> 16 -> ...
+  # without advancing optimizer state or dropping samples.
+  device_microbatch_size: 64
+  oom_microbatch_backoff: true
+  min_device_microbatch_size: 2
+  activation_microbatch_size: 64
+  precompute_dense_mlp_inputs: true
+  resume_partial_attention: true
+  defer_train_loss_item_sync: true
+  lr1: 0.0001
+  lr2: 0.00005
+  weight_decay: 1.0
+  checkpoint_dir: ${GSQ_OFFICIAL_RESULTS}/qwen3_8b_uniform_gsq_g128_remote_formal
+  log_dir: ${GSQ_OFFICIAL_LOGS}/qwen3_8b_uniform_gsq_g128_remote_formal
+  eval_baseline: false
+  # The compute host has 503 GiB RAM.  Keeping the 128 GiB training
+  # activation tensor in anonymous memory avoids turning every epoch into
+  # random reads from shared storage.
+  act_cache_mmap_threshold_gb: 200
+  act_cache_dir: ${GSQ_RUNTIME}/act_cache/qwen3_8b_uniform_gsq_g128_remote_formal
+  ppl_eval_every_n_layers: 0
+
+gptq:
+  nsamples: 512
+  wbits: 2
+  sym: true
+  trits: false
+  percdamp: 0.1
+  blocksize: 128
+  groupsize: 128
+  static_groups: false
+  prunen: 0
+  prunem: 0
+
+wandb:
+  enabled: false

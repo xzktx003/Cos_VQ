@@ -1,0 +1,35 @@
+# Local credentials and environment overrides.
+.env
+.env.*
+!.env.example
+
+# Python environments, generated caches, and test/lint state.
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Model weights, checkpoints, token/activation caches, and generated logs.
+*.safetensors
+*.gguf
+*.ckpt
+*.pth
+*.pt
+*.bin
+*.model
+*.log
+wandb/
+
+# Large transient directories; compact JSON/Markdown summaries remain trackable.
+experiments/results/**/data/
+experiments/results/**/checkpoints/
+experiments/results/**/training/
+experiments/results/**/v19/
+experiments/results/**/logs/
+
+# Generated local test, build, and compiler state.
+*.egg-info/
+pytest-of-*/
+torchinductor_*/

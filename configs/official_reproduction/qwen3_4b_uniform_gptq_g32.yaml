@@ -1,0 +1,53 @@
+model:
+  name: Qwen/Qwen3-4B-Instruct-2507
+  device: cuda
+  dtype: bfloat16
+
+data:
+  dataset_name: fineweb_edu
+  batch_size: 64
+  num_samples: 4096
+  val_samples: 128
+  max_length: 4096
+  num_workers: 8
+  seed: 0
+  shuffle_seed: 1234
+
+quantization:
+  gsq_bits: 2
+  init_method: gptq
+  gsq_enabled: false
+  start_layer: 0
+  self_attn: true
+  std: 0.01
+  temperature: [2.0, 0.05]
+  scale: [100, 500]
+  groupsize: 32
+  strength: 6
+  logits_dtype: bfloat16
+
+training:
+  num_epochs: 20
+  device_microbatch_size: 2
+  lr1: 0.0001
+  lr2: 0.00005
+  weight_decay: 1.0
+  checkpoint_dir: ${GSQ_OFFICIAL_RESULTS}/uniform_gptq_g32
+  log_dir: ${GSQ_OFFICIAL_LOGS}/uniform_gptq_g32
+  eval_baseline: false
+  ppl_eval_every_n_layers: 0
+
+gptq:
+  nsamples: 512
+  wbits: 2
+  sym: true
+  trits: false
+  percdamp: 0.1
+  blocksize: 128
+  groupsize: 32
+  static_groups: false
+  prunen: 0
+  prunem: 0
+
+wandb:
+  enabled: false

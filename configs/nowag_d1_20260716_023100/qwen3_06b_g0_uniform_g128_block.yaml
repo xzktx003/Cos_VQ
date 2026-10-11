@@ -1,0 +1,7 @@
+model: {name: Qwen/Qwen3-0.6B, device: cuda, dtype: bfloat16}
+data: {dataset_name: c4, batch_size: 16, num_samples: 128, val_samples: 32, max_length: 512, num_workers: 0, seed: 0, shuffle_seed: 1234}
+quantization: {gsq_bits: 2, init_method: gptq, gsq_enabled: true, start_layer: 0, self_attn: true, std: 0.01, temperature: [2.0, 0.05], scale: [100, 500], groupsize: 128, strength: 6, logits_dtype: float32}
+training: {num_epochs: 20, device_microbatch_size: 4, lr1: 0.0001, lr2: 0.00005, weight_decay: 1.0, checkpoint_dir: experiments/results/20260716_023100_qwen3_06b_g0_uniform_g128_block, log_dir: experiments/logs/20260716_023100_qwen3_06b_g0_uniform_g128_block, eval_baseline: false, ppl_eval_every_n_layers: 0}
+gptq: {nsamples: 128, wbits: 2, sym: true, trits: false, percdamp: 0.1, blocksize: 128, groupsize: 128, static_groups: false, prunen: 0, prunem: 0, skip: false}
+wandb: {enabled: false}
+

@@ -1,0 +1,67 @@
+model:
+  name: Qwen/Qwen3-14B
+  device: cuda
+  dtype: bfloat16
+
+data:
+  dataset_name: fineweb_edu
+  batch_size: 64
+  num_samples: 4096
+  val_samples: 128
+  max_length: 4096
+  num_workers: 8
+  seed: 0
+  shuffle_seed: 1234
+
+quantization:
+  gsq_bits: 2
+  init_method: gptq
+  gsq_enabled: true
+  start_layer: 0
+  self_attn: true
+  std: 0.01
+  temperature: [2.0, 0.05]
+  scale: [100, 500]
+  groupsize: 128
+  strength: 6
+  logits_dtype: bfloat16
+
+training:
+  num_epochs: 20
+  # Start at half of the logical batch to reduce repeated quantizer forwards;
+  # OOM backoff preserves the same logical batch and settles on 16/8 if needed.
+  device_microbatch_size: 32
+  oom_microbatch_backoff: true
+  min_device_microbatch_size: 2
+  # Replay at a wider batch to saturate the GPU during resume/propagation;
+  # activation OOM recovery halves this independently from training batches.
+  activation_microbatch_size: 32
+  precompute_dense_mlp_inputs: true
+  resume_partial_attention: true
+  defer_train_loss_item_sync: true
+  lr1: 0.0001
+  lr2: 0.00005
+  weight_decay: 1.0
+  checkpoint_dir: ${GSQ_OFFICIAL_RESULTS}/qwen3_14b_uniform_gsq_g128_remote_formal
+  log_dir: ${GSQ_OFFICIAL_LOGS}/qwen3_14b_uniform_gsq_g128_remote_formal
+  eval_baseline: false
+  # The 160 GiB training activation tensor fits in host RAM together with the
+  # Qwen3-8B run; avoid the shared-disk mmap bottleneck during training.
+  act_cache_mmap_threshold_gb: 200
+  act_cache_dir: ${GSQ_RUNTIME}/act_cache/qwen3_14b_uniform_gsq_g128_remote_formal
+  ppl_eval_every_n_layers: 0
+
+gptq:
+  nsamples: 512
+  wbits: 2
+  sym: true
+  trits: false
+  percdamp: 0.1
+  blocksize: 128
+  groupsize: 128
+  static_groups: false
+  prunen: 0
+  prunem: 0
+
+wandb:
+  enabled: false
