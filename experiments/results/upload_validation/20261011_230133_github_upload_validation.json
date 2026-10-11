@@ -184,5 +184,18 @@
       "stdout": "Resolved 280 packages in 5ms; dependency graph unchanged."
     }
   ],
-  "gpu_experiments_run": false
+  "gpu_experiments_run": false,
+  "publication": {
+    "verified_at": "2026-10-11T23:04:40.736901+08:00",
+    "repository": "xzktx003/Cos_VQ",
+    "private": true,
+    "visibility": "private",
+    "branch": "main",
+    "content_commit": "5e3fd3dd17c33259e85dd59f7e75644f35b24e38",
+    "source_repository": "xzktx003/tmp_stom",
+    "source_branch": "main",
+    "source_commit": "0b28b1df8eca9aaf7417ee038d3b6059e550b382",
+    "source_pushed": false,
+    "remote_content_files": 281
+  }
 }
