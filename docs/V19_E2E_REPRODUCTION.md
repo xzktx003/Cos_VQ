@@ -1,13 +1,14 @@
-# V19 + E2E 实验与精度复现指南
+# V19 + E2E Experiment And Accuracy Reproduction Guide
 
-本文档说明如何从公开代码重新生成 V19 + E2E checkpoint，并按照论文协议复现
-WikiText-2 PPL 和六项零样本准确率。协议的唯一机器可读来源是
-`configs/reproduction/v19_e2e_six_models.json`；命令编排的唯一实现是
-`scripts/reproduce_v19_e2e.py`。
+This document explains how to regenerate V19 + E2E checkpoints from the public
+code and reproduce WikiText-2 PPL plus six zero-shot accuracy tasks under the
+paper protocol. The only machine-readable source of the protocol is
+`configs/reproduction/v19_e2e_six_models.json`; the only command orchestration
+implementation is `scripts/reproduce_v19_e2e.py`.
 
-## 1. 复现范围
+## 1. Reproduction Scope
 
-| 模型键 | Hugging Face 模型 | 层数 | 独立入口 |
+| Model key | Hugging Face model | Layers | Standalone launcher |
 | --- | --- | ---: | --- |
 | `qwen3-4b` | `Qwen/Qwen3-4B` | 36 | `scripts/reproduce_accuracy/qwen3_4b.sh` |
 | `qwen3-8b` | `Qwen/Qwen3-8B` | 36 | `scripts/reproduce_accuracy/qwen3_8b.sh` |
@@ -16,67 +17,84 @@ WikiText-2 PPL 和六项零样本准确率。协议的唯一机器可读来源�
 | `llama2-7b` | `meta-llama/Llama-2-7b-hf` | 32 | `scripts/reproduce_accuracy/llama2_7b.sh` |
 | `llama3.1-8b-instruct` | `meta-llama/Llama-3.1-8B-Instruct` | 32 | `scripts/reproduce_accuracy/llama3_1_8b_instruct.sh` |
 
-每次完整运行包含量化、V19 搜索、E2E 微调、端点选择和最终评测，不是只读取论文表格。
+Each full run performs quantization, V19 search, E2E fine-tuning, endpoint
+selection, and final evaluation. It does not read values from the paper tables.
 
-## 2. 方法流水线
+## 2. Method Pipeline
 
-每个模型依次执行以下阶段：
+Each model runs the following stages in order:
 
-1. **冻结输入与数据版本**：解析模型 snapshot，冻结本次所需 Hugging Face 数据集
-   revision，并将实际 commit 写入 `campaign_manifest.json`。
-2. **构建校准缓存**：Qwen3/Llama-2 使用 RedPajama；Llama-3.1 使用 FineWeb-Edu，
-   并以独立 C4 guard 检查 tokenizer/cache 身份。
-3. **Vector-GSQ baseline**：运行 NoWag-d6、Hessian-aware Vector-GPTQ 和
-   block-level Vector-GSQ，生成 baseline checkpoint。Llama-3.1 额外执行 task-local
-   assignment 校准。
-4. **V19 候选优化**：从同一 baseline 独立运行 `scale_only`、`standard`、`wide`
-   三条支路；用未参与优化的 development NLL 在 standard/wide 间选择 V19 端点。
-5. **固定离散指派 E2E**：对 baseline 和 V19 分别使用 `5e-5`、`1e-4` 两个学习率
-   训练 3 epochs；Qwen3-8B 与 Llama-3.1 还运行 scale→E2E 支路。初始端点也参与
-   development NLL 选择，防止微调退化。
-6. **最终评测**：仅在选择完成后评测各端点，写出原始 JSON、样本日志和 summary。
+1. **Freeze inputs and data versions**: resolve the model snapshot, freeze the
+   Hugging Face dataset revisions required for the run, and write the resolved
+   commits into `campaign_manifest.json`.
+2. **Build calibration caches**: Qwen3 and Llama-2 use RedPajama; Llama-3.1 uses
+   FineWeb-Edu and an independent C4 guard to check tokenizer/cache identity.
+3. **Vector-GSQ baseline**: run NoWag-d6, Hessian-aware Vector-GPTQ, and
+   block-level Vector-GSQ to create the baseline checkpoint. Llama-3.1 also runs
+   task-local assignment calibration.
+4. **V19 candidate optimization**: run `scale_only`, `standard`, and `wide`
+   branches independently from the same baseline; select the V19 endpoint
+   between standard and wide using development NLL that was not used for
+   optimization.
+5. **Fixed discrete-assignment E2E**: train baseline and V19 for 3 epochs with
+   learning rates `5e-5` and `1e-4`; Qwen3-8B and Llama-3.1 also run a
+   scale-to-E2E branch. The initial endpoints are included in development NLL
+   selection to guard against fine-tuning regressions.
+6. **Final evaluation**: evaluate endpoints only after selection is complete,
+   then write raw JSON files, sample logs, and summaries.
 
-主要实现映射如下：
+The main implementation map is:
 
-| 阶段 | 代码入口 |
+| Stage | Code entry point |
 | --- | --- |
-| 总控、manifest、自动报告 | `scripts/reproduce_v19_e2e.py` |
-| Qwen/Llama 缓存适配 | `experiments/qwen_qtip/`、`experiments/llama_qtip/` |
+| Orchestration, manifest, generated report | `scripts/reproduce_v19_e2e.py` |
+| Qwen/Llama cache adapters | `experiments/qwen_qtip/`, `experiments/llama_qtip/` |
 | Vector-GSQ baseline | `experiments/nowag_d6/run_prefix_vector_gsq.py` |
 | Llama-3.1 task assignment | `experiments/nowag_d6/calibrate_task_local_assignments.py` |
-| V19 模型级优化 | `experiments/nowag_d6/v19_model_driver.py` |
-| V19 独立开发集选择 | `experiments/nowag_d6/v19_validation_score.py` |
-| 固定指派 E2E | `experiments/nowag_d6/finetune_hard_codebook_e2e.py` |
-| E2E 端点选择 | `experiments/nowag_d6/v19_e2e_selection.py` |
-| PPL 与六任务精度 | `experiments/remote_runner/evaluate_logical_checkpoint_lm_eval.py` |
+| V19 model-level optimization | `experiments/nowag_d6/v19_model_driver.py` |
+| V19 independent development-set selection | `experiments/nowag_d6/v19_validation_score.py` |
+| Fixed-assignment E2E | `experiments/nowag_d6/finetune_hard_codebook_e2e.py` |
+| E2E endpoint selection | `experiments/nowag_d6/v19_e2e_selection.py` |
+| PPL and six-task accuracy | `experiments/remote_runner/evaluate_logical_checkpoint_lm_eval.py` |
 
-## 3. 冻结实验协议
+## 3. Frozen Experiment Protocol
 
-- 量化：d=6，2 bits/weight，BF16，seed 0。
-- V19：128×2048 校准，block-Frobenius majorizer，1 pass。
-- standard：8 个 active positions，每个 ranking 4 个 candidates。
-- wide：16 个 active positions，每个 ranking 8 个 candidates。
-- E2E：context 4096，batch 4，3 epochs，gradient clip 1.0。
-- PPL：WikiText-2 raw test，`seqlength=2048`。
-- Accuracy：0-shot、batch size 1、seed 0、1000 bootstrap iterations。
-- 任务：ARC-Challenge、ARC-Easy、HellaSwag、LAMBADA OpenAI、PIQA、WinoGrande。
-- 汇总准确率：六项任务 macro average；原始任务指标保存在评测 JSON 中。
+- Quantization: d=6, 2 bits/weight, BF16, seed 0.
+- V19: 128x2048 calibration, block-Frobenius majorizer, 1 pass.
+- Standard: 8 active positions, 4 candidates per ranking.
+- Wide: 16 active positions, 8 candidates per ranking.
+- E2E: context 4096, batch 4, 3 epochs, gradient clip 1.0.
+- PPL: WikiText-2 raw test, `seqlength=2048`.
+- Accuracy: 0-shot, batch size 1, seed 0, 1000 bootstrap iterations.
+- Tasks: ARC-Challenge, ARC-Easy, HellaSwag, LAMBADA OpenAI, PIQA, WinoGrande.
+- Aggregate accuracy: macro average over the six tasks; raw task metrics are
+  preserved in the evaluation JSON files.
 
-各模型的 calibration 数量、并发度、E2E 数据量、scale layout 等差异全部记录在
-`configs/reproduction/v19_e2e_six_models.json`，不要在 shell 脚本中复制或手改。
+All model-specific differences in calibration counts, concurrency, E2E data
+volume, scale layout, and related parameters are recorded in
+`configs/reproduction/v19_e2e_six_models.json`. Do not copy or hand-edit them
+in shell scripts.
 
-## 4. 环境与数据准备
+## 4. Environment And Data Preparation
 
 ```bash
 cd Cos_VQ
 uv sync --frozen
+source .venv/bin/activate
 ```
 
-需要 Python 3.10+、CUDA GPU、足够的本地模型/checkpoint 空间和 Hugging Face Hub
-访问权限。Llama 模型需要提前接受上游许可。访问令牌只应通过 Hugging Face 本机登录或
-环境变量提供，不要写入配置、脚本、manifest 或日志。
+You need Python 3.10+, CUDA GPUs, enough local storage for models and
+checkpoints, and Hugging Face Hub access. Llama models require accepting the
+upstream license before use. Access tokens should be supplied only through local
+Hugging Face login or environment variables; do not write them into
+configuration files, scripts, manifests, or logs.
 
-先运行 dry-run。它只打印完整命令，不下载数据、不创建输出、不启动 GPU：
+When `--model-path` is not provided, the orchestrator resolves model snapshots
+with `huggingface_hub.snapshot_download(...)`, so source model downloads use the
+default Hugging Face cache unless your environment overrides it.
+
+Run a dry run first. It prints the complete command plan without downloading
+data, creating outputs, or starting GPU work:
 
 ```bash
 ./scripts/reproduce_accuracy/qwen3_4b.sh \
@@ -84,9 +102,9 @@ uv sync --frozen
   --dry-run
 ```
 
-## 5. 正式运行
+## 5. Full Runs
 
-单模型、自动获取固定 snapshot：
+Single model, automatically resolving the fixed snapshot:
 
 ```bash
 ./scripts/reproduce_accuracy/qwen3_8b.sh \
@@ -94,7 +112,7 @@ uv sync --frozen
   --cuda-visible-devices 0
 ```
 
-单模型、本地 snapshot：
+Single model, using a local snapshot:
 
 ```bash
 ./scripts/reproduce_accuracy/qwen3_14b.sh \
@@ -103,7 +121,7 @@ uv sync --frozen
   --cuda-visible-devices 0
 ```
 
-Llama-3.1 本地模型与参考 tokenizer：
+Llama-3.1 with a local model and reference tokenizer:
 
 ```bash
 ./scripts/reproduce_accuracy/llama3_1_8b_instruct.sh \
@@ -113,7 +131,7 @@ Llama-3.1 本地模型与参考 tokenizer：
   --cuda-visible-devices 0
 ```
 
-全部六模型顺序运行：
+All six models, sequentially:
 
 ```bash
 python -m scripts.reproduce_v19_e2e \
@@ -122,13 +140,16 @@ python -m scripts.reproduce_v19_e2e \
   --cuda-visible-devices 0
 ```
 
-训练阶段始终使用逻辑 `cuda:0`；用 `--cuda-visible-devices` 选择物理卡。
-`--split-gpus` 要求恰好两张可见 GPU，只拆分 V19 development scoring 和最终评测，
-不会把量化/V19/E2E 训练自动分布到两张卡。
+Training stages always use logical `cuda:0`; use `--cuda-visible-devices` to
+select the physical GPU. `--split-gpus` requires exactly two visible GPUs and
+splits only V19 development scoring and final evaluation. It does not
+automatically distribute quantization, V19 training, or E2E training across two
+GPUs.
 
-## 6. 输出结构与结果判定
+## 6. Output Structure And Success Criteria
 
-运行目录固定在 `experiments/results/v19_e2e/<RUN_STAMP>/`：
+The default run directory is
+`experiments/results/v19_e2e/<RUN_STAMP>/`:
 
 ```text
 experiments/results/v19_e2e/<RUN_STAMP>/
@@ -144,29 +165,38 @@ experiments/results/v19_e2e/<RUN_STAMP>/
     └── logs/
 ```
 
-运行成功必须同时满足：
+A successful run must satisfy all of the following:
 
-1. `campaign_manifest.json` 的顶层 `status` 为 `completed`；
-2. 对应模型记录的 `status` 为 `completed`；
-3. 每个选优 JSON 的 `completed` 为 `true` 且指向存在的 checkpoint；
-4. `evaluation/<ENDPOINT>/summary.json` 存在；
-5. 自动报告 `report/<RUN_STAMP>_v19_e2e_reproduction.md` 已生成。
+1. The top-level `status` in `campaign_manifest.json` is `completed`.
+2. The corresponding model record has `status` set to `completed`.
+3. Every selection JSON has `completed` set to `true` and points to an existing
+   checkpoint.
+4. `evaluation/<ENDPOINT>/summary.json` exists.
+5. The generated report `report/<RUN_STAMP>_v19_e2e_reproduction.md` exists.
 
-普通模型评测 `baseline`、`scale`、`v19`、`baseline_e2e`、`v19_e2e` 五个端点；
-Qwen3-8B 与 Llama-3.1 另有 `scale_e2e`。论文数值应从 summary/原始 JSON读取，
-不要从终端日志人工抄录。
+Regular models evaluate five endpoints: `baseline`, `scale`, `v19`,
+`baseline_e2e`, and `v19_e2e`. Qwen3-8B and Llama-3.1 also include
+`scale_e2e`. Paper numbers should be read from summaries or raw JSON files, not
+copied manually from terminal logs.
 
-## 7. 失败、重跑与存储规则
+## 7. Failure, Rerun, And Storage Rules
 
-- 总控脚本拒绝覆盖已存在的 `<RUN_STAMP>`，成功或失败记录都不会静默丢失。
-- 当前公开总控不承诺对半完成 campaign 原地续跑；失败后先保留 manifest 与日志，修复后
-  使用新的时间戳重跑，并在报告中记录前一次失败目录。
-- 可使用 `--output-root`，但目标必须仍位于本包 `experiments/results/` 下。
-- 不提交基础模型、数据集缓存、大型 checkpoint 或完整运行日志到 Git。
-- 不删除原始 JSON、selection、manifest、配置哈希和自动报告；这些是论文结果的审计链。
-- activation cache 可重建，但若要支持断点恢复，应在对应运行结束并完成归档前保留。
+- The orchestrator refuses to overwrite an existing `<RUN_STAMP>`, so success
+  or failure records are not silently lost.
+- The current public orchestrator does not promise in-place resume for a
+  partially completed campaign. After a failure, keep the manifest and logs,
+  fix the issue, rerun with a new timestamp, and record the previous failed
+  directory in the report.
+- `--output-root` is allowed, but the target must still be under this package's
+  `experiments/results/` directory.
+- Do not commit base models, dataset caches, large checkpoints, or complete run
+  logs to Git.
+- Do not delete raw JSON files, selections, manifests, configuration hashes, or
+  generated reports; together they form the audit trail for the paper results.
+- Activation caches can be rebuilt, but keep them until the relevant run is
+  complete and archived if you need checkpoint-resume support.
 
-## 8. 验证公开包
+## 8. Verify The Public Package
 
 ```bash
 bash -n scripts/reproduce_accuracy/*.sh
@@ -174,5 +204,7 @@ python -m pytest -q tests/test_reproduction_pipeline.py
 python -m compileall -q scripts experiments src
 ```
 
-完整 CUDA 复现耗时长且依赖模型授权、数据网络与 GPU，不能用上述 CPU 合同测试替代。
-CPU 测试证明命令图、协议参数、模块打包和安全边界正确；最终论文指标仍以正式运行产物为准。
+Full CUDA reproduction is long-running and depends on model authorization, data
+network access, and GPUs. The CPU contract tests above do not replace it. They
+verify the command graph, protocol parameters, module packaging, and safety
+boundaries; final paper metrics still come from full run artifacts.

@@ -110,13 +110,13 @@ def load_layer_from_checkpoint(
         print(compression_type)
         if "LinearVQ" in compression_type or "quantize" in compression_type:
             print("Loading VQ compressed layer")
-            # 确保使用LinearVQ层类型
+            # Ensure the layer uses the LinearVQ type
             if not isinstance(module, qc.LinearVQ):
                 new_layer = qc.LinearVQ(module.weight, module.bias, add_bias)
                 new_layer.blank_recreate(**checkpoint_args["quantizer_kwargs"])
                 module = new_layer
             else:
-                # 如果已经是LinearVQ类型，直接加载参数
+                # Load parameters directly when the layer is already LinearVQ
                 module.blank_recreate(**checkpoint_args["quantizer_kwargs"])
 
         if clean:

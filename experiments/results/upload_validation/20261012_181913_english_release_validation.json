@@ -1,0 +1,27 @@
+{
+  "timestamp": "2026-10-12T18:19:13.420481+08:00",
+  "scope": "English public release",
+  "tests": {
+    "passed": 23,
+    "warnings": 2,
+    "selection": [
+      "tests/test_reproduction_pipeline.py",
+      "tests/test_build_matched_llama_assignment_cache.py"
+    ]
+  },
+  "report_templates": "Both English; numeric/configuration interpolation identical to prior source; synthetic fixtures only",
+  "non_report_code": "Executable AST preserved for tokenizer probe and three third-party files",
+  "historical_result_sha256": "344110182b749c9307d60c158434fcd9e1ac27e09a71ba1532fadb065cd37e86",
+  "historical_result_unchanged": true,
+  "images": "All three existing PNGs visually inspected; labels are English",
+  "gpu_experiments_run": false,
+  "english_source_scan": {
+    "text_files_checked": 281,
+    "raw_cjk_matches": 0,
+    "decoded_json_files_checked": 4,
+    "decoded_json_cjk_matches": 0,
+    "valid_local_markdown_links": 9,
+    "multilingual_test_probe": "Runtime sample intentionally preserved with Unicode escapes; explanatory prose is English."
+  },
+  "release_files": 284
+}

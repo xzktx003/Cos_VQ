@@ -55,9 +55,10 @@ def verify_raw_tokenizer_equivalence(reference: Any, target: Any) -> int:
     target_backend.pop("added_tokens", None)
     if reference_backend != target_backend:
         raise ValueError("reference and target raw tokenizer backends differ")
+    # Keep the multilingual probe unchanged; Unicode escapes make the source readable in English.
     probes = (
         "The quick brown fox jumps over the lazy dog.",
-        "Quantization: 4096 vectors, α=0.25, 中文与English。",
+        "Quantization: 4096 vectors, α=0.25, \u4e2d\u6587\u4e0eEnglish\u3002",
         "def f(x):\n    return x * x\n",
     )
     for text in probes:

@@ -1207,37 +1207,37 @@ def write_run_report(
     REPORT_ROOT.mkdir(parents=True, exist_ok=True)
     report_path = REPORT_ROOT / f"{run_stamp}_v19_e2e_reproduction.md"
     lines = [
-        f"# {run_stamp} V19+E2E 六模型复现记录",
+        f"# {run_stamp} V19+E2E six-model reproduction report",
         "",
-        "本报告由复现脚本从运行 manifest 与各评测 summary 自动生成。",
-        "仅记录该次真实执行产生的状态与指标；没有完成的端点不会填入推测值。",
+        "This report is generated automatically from the run manifest and evaluation summaries.",
+        "It records the status and metrics produced by this run. Incomplete endpoints have no inferred metrics.",
         "",
-        "## 目的与方法",
+        "## Objective and method",
         "",
-        "在六个预注册模型上依次构建原始 Vector-GSQ 基线、scale-only、V19 标准/宽搜索，",
-        "按独立开发 NLL 选择 V19 家族端点，再分别对 baseline、V19（及代表模型 scale）",
-        "进行固定离散指派的 E2E 微调和学习率选优。最终只在选择完成后评测 WikiText-2 test",
-        "与六项 lm-eval zero-shot 任务。",
+        "For each of the six preregistered models, build the Vector-GSQ baseline, scale-only endpoint,",
+        "and standard/wide V19 candidates. Select the V19 endpoint using held-out development NLL,",
+        "then fine-tune the baseline, V19, and applicable scale endpoints with fixed discrete assignments",
+        "and select the learning rate. Evaluate WikiText-2 test and six zero-shot lm-eval tasks after selection.",
         "",
-        "## 固定协议",
+        "## Frozen protocol",
         "",
-        f"- V19：128×2048 校准，{config['protocol']['v19']['majorizer']}，",
+        f"- V19: 128 calibration sequences of 2048 tokens, {config['protocol']['v19']['majorizer']},",
         f"  standard={config['protocol']['v19']['standard']['active_positions']}/"
-        f"{config['protocol']['v19']['standard']['candidates_per_ranking']}，wide="
+        f"{config['protocol']['v19']['standard']['candidates_per_ranking']}, wide="
         f"{config['protocol']['v19']['wide']['active_positions']}/"
-        f"{config['protocol']['v19']['wide']['candidates_per_ranking']}，scale-only 同 standard 预算。",
-        f"- E2E：{config['protocol']['e2e_epochs']} epochs、batch "
-        f"{config['protocol']['e2e_batch_size']}、context "
-        f"{config['protocol']['e2e_context_length']}、候选学习率 "
-        f"{', '.join(map(str, config['protocol']['e2e_learning_rates']))}、seed {config['protocol']['seed']}。",
-        f"- 最终测试：WikiText-2 test seqlength {config['protocol']['wiki_text_sequence_length']}；"
-        f"lm-eval tasks `{', '.join(config['protocol']['lm_eval_tasks'])}`。",
-        "- 每个分支都单独保存完整日志与 JSON；不将模型权重或缓存提交到 Git。",
-        f"- 本次实际使用的数据集提交：`{json.dumps(config['protocol'].get('resolved_dataset_revisions', {}), ensure_ascii=False)}`。",
+        f"{config['protocol']['v19']['wide']['candidates_per_ranking']}; scale-only uses the standard budget.",
+        f"- E2E: {config['protocol']['e2e_epochs']} epochs, batch "
+        f"{config['protocol']['e2e_batch_size']}, context "
+        f"{config['protocol']['e2e_context_length']}, candidate learning rates "
+        f"{', '.join(map(str, config['protocol']['e2e_learning_rates']))}, seed {config['protocol']['seed']}.",
+        f"- Final evaluation: WikiText-2 test sequence length {config['protocol']['wiki_text_sequence_length']}; "
+        f"lm-eval tasks `{', '.join(config['protocol']['lm_eval_tasks'])}`.",
+        "- Full logs and JSON are saved separately for each branch. Model weights and caches are excluded from Git.",
+        f"- Resolved dataset commits for this run: `{json.dumps(config['protocol'].get('resolved_dataset_revisions', {}), ensure_ascii=False)}`.",
         "",
-        "## 结果",
+        "## Results",
         "",
-        "| 模型 | 端点 | WikiText-2 test PPL ↓ | 六任务 Macro ↑ | 评测 summary |",
+        "| Model | Endpoint | WikiText-2 test PPL (lower is better) | Six-task macro accuracy (higher is better) | Evaluation summary |",
         "|---|---|---:|---:|---|",
     ]
     for model_record in completed_models:
@@ -1245,10 +1245,10 @@ def write_run_report(
             summary_path = Path(summary_value)
             try:
                 ppl, macro = metric_from_summary(summary_path)
-                ppl_text = f"{ppl:.6f}" if ppl is not None else "未记录"
-                macro_text = f"{macro:.6f}" if macro is not None else "未记录"
+                ppl_text = f"{ppl:.6f}" if ppl is not None else "Not recorded"
+                macro_text = f"{macro:.6f}" if macro is not None else "Not recorded"
             except (OSError, ValueError, TypeError, json.JSONDecodeError) as error:
-                ppl_text = macro_text = f"读取失败：{error}"
+                ppl_text = macro_text = f"Read failed: {error}"
             relative = summary_path.relative_to(PACKAGE_ROOT)
             lines.append(
                 f"| {model_record['model']} | {endpoint} | {ppl_text} | {macro_text} | `{relative}` |"
@@ -1256,11 +1256,11 @@ def write_run_report(
     lines.extend(
         [
             "",
-            "## 运行档案",
+            "## Run artifacts",
             "",
-            f"- Campaign manifest：`{(campaign_dir / 'campaign_manifest.json').relative_to(PACKAGE_ROOT)}`",
-            f"- 运行目录：`{campaign_dir.relative_to(PACKAGE_ROOT)}`",
-            "- 该报告不覆盖预注册记录，也不替代模型卡、数据卡或许可证审查。",
+            f"- Campaign manifest: `{(campaign_dir / 'campaign_manifest.json').relative_to(PACKAGE_ROOT)}`",
+            f"- Run directory: `{campaign_dir.relative_to(PACKAGE_ROOT)}`",
+            "- The preregistration record, model cards, dataset cards, and license reviews remain separate records.",
             "",
         ]
     )

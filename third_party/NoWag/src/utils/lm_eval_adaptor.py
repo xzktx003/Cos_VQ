@@ -23,7 +23,7 @@ class LMEvalAdaptor(HFLM):
             print("WARNING: Check opt output truncation for vocab size")
             raise NotImplementedError
         
-        # 使用 _model 而不是 model
+        # Store the model in the HFLM _model attribute
         self._model = model
         self._model.eval()
 
@@ -33,7 +33,7 @@ class LMEvalAdaptor(HFLM):
         self._batch_size = batch_size
         self._max_length = max_length
 
-        # 获取模型类型
+        # Determine the model family
         self.model_type = "auto"
         if "llama" in model_name.lower():
             self.model_type = "llama"
@@ -78,11 +78,11 @@ class LMEvalAdaptor(HFLM):
 
     def tok_decode(self, tokens, skip_special_tokens=True):
         """
-        解码 token 序列为文本
+        Decode a token sequence into text.
         
         Args:
-            tokens: 要解码的 token 序列
-            skip_special_tokens: 是否跳过特殊 token
+            tokens: Token sequence to decode.
+            skip_special_tokens: Whether to skip special tokens.
         """
         if isinstance(tokens, int):
             tokens = [tokens]
@@ -98,11 +98,11 @@ class LMEvalAdaptor(HFLM):
         """
         with torch.no_grad():
             if self.model_type == "qwen":
-                # Qwen 模型需要特殊处理
+                # Handle Qwen model outputs
                 outputs = self._model(inps, output_hidden_states=False)
                 return outputs.logits
             else:
-                # 其他模型（包括 LLaMA）使用默认处理
+                # Use the default handling for other models, including LLaMA
                 if isinstance(
                     self._model,
                     transformers.models.t5.modeling_t5.T5ForConditionalGeneration,
@@ -133,9 +133,9 @@ class LMEvalAdaptor(HFLM):
     def _model_generate(self, context, max_length, eos_token_id=None, **kwargs):
         if eos_token_id is None:
             eos_token_id = self.eot_token_id
-        # 移除不支持的参数
+        # Remove unsupported arguments
         kwargs.pop('do_sample', None)
-        kwargs.pop('stop', None)  # 移除 stop 参数
+        kwargs.pop('stop', None)  # Remove the stop argument
         kwargs.pop('temperature', None)
         return self._model.generate(
             context, 

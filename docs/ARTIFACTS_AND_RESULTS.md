@@ -1,32 +1,50 @@
-# 代码与实验结果保留说明
+# Code And Result Retention Notes
 
-## 公开代码包边界
+## Public Package Boundary
 
-`code/Cos_VQ` 包含复现 V19 + E2E 所需的算法实现、配置、第三方 NoWag 代码、测试、
-模型级 launcher 和评测入口。`tests/test_reproduction_pipeline.py` 会遍历六模型命令图，
-确认所有被调用的 Python 模块都已打包。
+`Cos_VQ` contains the algorithm implementation, configuration, vendored
+NoWag code, tests, model-level launchers, and evaluation entry points needed
+to reproduce V19 + E2E. `tests/test_reproduction_pipeline.py` traverses the
+six-model command graph and verifies that every invoked Python module is
+packaged.
 
-## 新运行产物
+## New Run Artifacts
 
-所有新实验产物保存在本包内：
+Pipeline-generated experiment artifacts are kept inside this package. Source model
+and dataset downloads use the configured Hugging Face cache:
 
-- `experiments/results/v19_e2e/<RUN_STAMP>/`：缓存、checkpoint、selection、原始评测 JSON、日志；
-- `report/<RUN_STAMP>_v19_e2e_reproduction.md`：从 manifest 与 summary 自动生成的报告；
-- `campaign_manifest.json`：配置哈希、实际模型/数据 revision、逐步命令、状态和时间。
+- `experiments/results/v19_e2e/<RUN_STAMP>/`: caches, checkpoints,
+  selections, raw evaluation JSON files, and logs.
+- `report/<RUN_STAMP>_v19_e2e_reproduction.md`: the report generated
+  automatically from the manifest and summaries.
+- `campaign_manifest.json`: configuration hashes, resolved model and dataset
+  revisions, step-by-step commands, status, and timing.
 
-这些目录被 Git 忽略是为了避免误提交多 GB 文件，不代表运行后可以随意删除。归档时至少保留
-manifest、冻结配置、selection、最终 checkpoint、原始评测 JSON、summary、日志和报告。
+Git ignore rules exclude large caches, checkpoints, training directories, and logs;
+compact JSON and Markdown summaries remain trackable. Archive at least
+the manifest, frozen configuration, selections, final checkpoints, raw
+evaluation JSON files, summaries, logs, and generated report.
 
-## 父研究仓库历史结果
+## Historical Results From The Parent Research Repository
 
-父仓库 `code/GSQ_nowag_d1_20260716_015355/experiments/results/`、根目录
-`experiments/results/` 和 `report/` 中的历史结果保持原位。公开包不会移动、覆盖或删除它们，
-也不会依赖父仓库的绝对路径完成一轮新的复现。
+Historical results under the parent repository paths
+`code/GSQ_nowag_d1_20260716_015355/experiments/results/`, root-level
+`experiments/results/`, and `report/` remain in place. This public package does
+not move, overwrite, or delete them, and a fresh reproduction does not depend on
+absolute paths from the parent repository.
 
-此前按明确清理指令删除的 activation cache 不属于当前保留集合，无法从 Git 恢复；其余现存
-代码、checkpoint、结果 JSON 和报告应继续保留。若今后清理可重建缓存，应先确认最终
-checkpoint、评测 JSON、manifest 和报告已经完整归档。
+Activation caches that were removed under an explicit cleanup instruction are
+not part of the current retained set and cannot be recovered from Git. Existing
+code, checkpoints, result JSON files, and reports should continue to be kept.
+Before removing rebuildable caches in the future, first confirm that final
+checkpoints, evaluation JSON files, manifests, and reports have been fully
+archived.
 
-## 历史紧凑结果快照
+## Historical Compact Result Snapshot
 
-[六模型核心结果 JSON](../experiments/results/reference/20260914_122219_v19_e2e_six_model_core_aggregate.json) 是 2026-09-14 汇总文件的原样副本，保留原始证据路径和 SHA256。JSON 中的历史绝对路径仅用于来源追踪，新的端到端运行不依赖这些路径。这份快照不是本次上传重新执行实验的结果。
+[Six-model core result JSON](../experiments/results/reference/20260914_122219_v19_e2e_six_model_core_aggregate.json)
+is a byte-preserving copy of the 2026-09-14 aggregate file, retaining the
+original evidence paths and SHA256 values. Historical absolute paths inside the
+JSON are provenance records only; new end-to-end runs do not depend on those
+paths. This snapshot is not a result from rerunning the experiment during this
+release.

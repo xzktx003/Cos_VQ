@@ -48,46 +48,46 @@ def render_report(summary: dict[str, Any], sources: dict[str, str]) -> str:
         f"{values['vector_gsq_minus_qtip']:+.6f} |"
         for task, values in accuracy["per_task"].items()
     )
-    return f"""# LLaMA Vector-GSQ 与 QTIP 同协议对比报告
+    return f"""# LLaMA Vector-GSQ and QTIP comparison under a matched protocol
 
-生成时间：{time.strftime('%Y-%m-%d %H:%M:%S %z')}
+Generated at: {time.strftime('%Y-%m-%d %H:%M:%S %z')}
 
-## 实验目的
+## Experiment objective
 
-在同一 LLaMA 基座、WikiText2 测试集和六项零样本任务上，比较 Vector-GSQ 与 QTIP 的码率和质量。
+Compare the bit rate and quality of Vector-GSQ and QTIP using the same LLaMA base model, WikiText-2 test split, and six zero-shot tasks.
 
-## 实验原理
+## Experiment principle
 
-Vector-GSQ 重建项目逻辑 checkpoint 中每层七个 Linear；QTIP 使用其官方 Hugging Face 加载器。先校验基座模型、PPL 序列长度、数据划分和任务集合，再报告有符号差值（Vector-GSQ 减 QTIP）。PPL 越低越好，准确率越高越好。
+Vector-GSQ reconstructs the seven linear modules in each layer from the logical checkpoint; QTIP uses its official Hugging Face loader. Validate the base model, PPL sequence length, data split, and task set before reporting signed differences (Vector-GSQ minus QTIP). Lower PPL and higher accuracy indicate better quality.
 
-## 实验配置
+## Experiment configuration
 
-- 基座模型：`{protocol['model']}`
-- PPL：WikiText2 `{protocol['ppl_split']}`，sequence length = {protocol['ppl_seqlen']}
-- lm-eval：0-shot，任务为 {', '.join(protocol['tasks'])}
-- 最大可比码率差：{rate['max_bpp_gap']:.6f} bit/weight
+- Base model: `{protocol['model']}`
+- PPL: WikiText-2 `{protocol['ppl_split']}`; sequence length = {protocol['ppl_seqlen']}
+- lm-eval: zero-shot tasks {', '.join(protocol['tasks'])}
+- Maximum comparable bit-rate gap: {rate['max_bpp_gap']:.6f} bit/weight
 
-## 实验结果
+## Experiment results
 
-| 指标 | Vector-GSQ | QTIP | Vector-GSQ - QTIP |
+| Metric | Vector-GSQ | QTIP | Vector-GSQ - QTIP |
 |---|---:|---:|---:|
 | Effective bit/weight | {rate['vector_gsq_effective_bpp']:.6f} | {rate['qtip_effective_bpp']:.6f} | {rate['vector_gsq_effective_bpp'] - rate['qtip_effective_bpp']:+.6f} |
 | WikiText2 PPL | {ppl['vector_gsq']:.6f} | {ppl['qtip']:.6f} | {ppl['vector_gsq_minus_qtip']:+.6f} |
-| 六任务宏平均准确率 | {accuracy['vector_gsq_macro_average']:.6f} | {accuracy['qtip_macro_average']:.6f} | {accuracy['vector_gsq_minus_qtip']:+.6f} |
+| Six-task macro accuracy | {accuracy['vector_gsq_macro_average']:.6f} | {accuracy['qtip_macro_average']:.6f} | {accuracy['vector_gsq_minus_qtip']:+.6f} |
 
-码率可比：**{rate['comparable']}**。质量判定：`{summary['verdict']}`。
+Comparable bit rates: **{rate['comparable']}**. Quality verdict: `{summary['verdict']}`.
 
-## 分任务结果
+## Per-task results
 
-| 任务 | Vector-GSQ | QTIP | Vector-GSQ - QTIP |
+| Task | Vector-GSQ | QTIP | Vector-GSQ - QTIP |
 |---|---:|---:|---:|
 {task_rows}
 
-## 结果来源
+## Result sources
 
-- Vector-GSQ PPL：`{sources['vector_ppl']}`
-- Vector-GSQ lm-eval：`{sources['vector_lm_eval']}`
-- QTIP 汇总：`{sources['qtip_summary']}`
+- Vector-GSQ PPL: `{sources['vector_ppl']}`
+- Vector-GSQ lm-eval: `{sources['vector_lm_eval']}`
+- QTIP summary: `{sources['qtip_summary']}`
 """
 
 

@@ -4,6 +4,10 @@ Each launcher runs the frozen V19 + E2E pipeline for one published model and
 finishes with WikiText-2 test perplexity (`seqlength=2048`) plus zero-shot
 ARC-Challenge, ARC-Easy, HellaSwag, LAMBADA, PIQA, and WinoGrande accuracy.
 
+First prepare the environment with `uv sync --frozen` from the package root
+and activate it with `source .venv/bin/activate`. The launchers then use that
+environment's Python interpreter.
+
 Run from any directory. Previewing a run is non-destructive:
 
 ```bash

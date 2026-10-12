@@ -205,7 +205,7 @@ def weighted_kmeans_update(
     centroids = torch.zeros((n_clusters, d), device=data.device,dtype=data.dtype)
     weighted_data = data * weights
     weights_sum = torch.zeros((n_clusters, d), device=data.device,dtype=data.dtype)
-    # 使用 scatter_reduce 并行更新
+    # Update in parallel using scatter_reduce
     centroids.scatter_reduce_(0, assignments.unsqueeze(1).expand(-1, data.shape[1]), 
                             weighted_data, reduce='sum')
     weights_sum.scatter_reduce_(0, assignments.unsqueeze(1).expand(-1, data.shape[1]), 
@@ -256,7 +256,7 @@ class LinearVQ(compression_parent.CompressedLinear):
                 self.get_hessianDiag().unsqueeze(0).repeat(self.out_features, 1)
             ).to(normalized_weight.dtype)  # shape of (out_features, in_features)
         except:
-            # 如果无法获取 hessian，使用全1矩阵代替
+            # Use an all-ones matrix when the Hessian is unavailable
             k_mean_weights = torch.ones(self.out_features, self.in_features, device=self.weight.device)
         if not ignore_norms:
             k_mean_weights *= (

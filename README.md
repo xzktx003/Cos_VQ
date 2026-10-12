@@ -4,9 +4,9 @@ CoS-VQ is a self-contained reproduction package for shared-scale codeword optimi
 
 ## Documentation
 
-- [V19 + E2E reproduction guide](docs/V19_E2E_REPRODUCTION.md) (Chinese): method stages, frozen protocol, commands for all six models, outputs, and completion criteria.
+- [V19 + E2E reproduction guide](docs/V19_E2E_REPRODUCTION.md): method stages, frozen protocol, commands for all six models, outputs, and completion criteria.
 - [Per-model reproduction launchers](scripts/reproduce_accuracy/README.md) (English): a launcher for each supported model.
-- [Artifacts and historical results](docs/ARTIFACTS_AND_RESULTS.md) (Chinese): package contents, generated artifacts, and retention rules.
+- [Artifacts and historical results](docs/ARTIFACTS_AND_RESULTS.md): package contents, generated artifacts, and retention rules.
 - [Six-model reproduction protocol](configs/reproduction/v19_e2e_six_models.json): the single source of truth for experiment parameters.
 
 ## Get the code
