@@ -1,5 +1,16 @@
 # Cos_VQ Release Record
 
+## Complete English public release (2026-10-12T18:22:36.492417+08:00)
+
+- Algorithm repository: `xzktx003/Cos_VQ`, branch `main`, public.
+- English content commit: `02a65771ba8306c7470351f4290af8765d92d6b4`.
+- Parent source repository: `xzktx003/tmp_stom`, branch `main`, base commit `5e400ed2911c17591d7ece0b63faec292df2f042`. Parent workspace synchronization is local for this release.
+- Uploaded changes: all remaining Chinese documentation, historical release/verification records, source comments and docstrings, and both generated report templates translated into English; dependency-environment guidance aligned; timestamped validation JSON and report included.
+- Verification: 23 regression tests passed; both generated reports verified using synthetic success/missing/error fixtures; metric/configuration interpolation and executable AST comparisons passed; 281 release text files and four decoded JSON files passed the language scan; Markdown links and image labels checked.
+- Historical experiment JSON remains byte-identical. The multilingual tokenizer-equivalence sample remains test data with its original runtime string represented through Unicode escapes. No new GPU experiment was run.
+- Validation record: `experiments/results/upload_validation/20261012_181913_english_release_validation.json`.
+- Validation report: `report/20261012_181913_english_release_validation.md`.
+
 ## Public repository release (2026-10-12T18:13:06.987153+08:00)
 
 - The user requested public visibility, superseding the earlier private-repository setting.
