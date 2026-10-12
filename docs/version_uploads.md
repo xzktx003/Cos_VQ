@@ -1,5 +1,13 @@
 # Cos_VQ 发布记录
 
+## English README update (2026-10-12T17:47:52.455865+08:00)
+
+- Algorithm repository: `xzktx003/Cos_VQ`, branch `main`, private.
+- README content commit: `c0bda69ab1201d87f5774be8abc3157a752d7c35`.
+- Parent source repository: `xzktx003/tmp_stom`, branch `main`, base commit `8f54a6a652e2df25be987007d9b53cc925533210`; the parent workspace changes are kept local for this update.
+- Uploaded changes: the English main README and this release record. The README covers setup, previews, execution, supported models, evaluation, artifacts, and licensing.
+- Verification: no Chinese text in the main README; local Markdown links and code fences checked; the documented single-model CLI dry-run passed; Git whitespace checks passed. Full GPU experiments were not run for this documentation update.
+
 ## Cos_VQ 独立私有仓库首发（2026-10-11T23:04:40.736901+08:00）
 
 - 版本：CoS-VQ 独立复现包首发，原目录 `code/code2open` 已改名为 `code/Cos_VQ`；Python 分发名为 `cos-vq`。
