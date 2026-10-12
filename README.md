@@ -1,81 +1,147 @@
 # CoS-VQ
 
-本目录是 CoS-VQ 的独立复现代码包（代码中的方法版本名为 V19 + E2E），包含 GSQ/NoWag 基线、数据缓存适配器、V19 尺度与码字分配优化、固定分配端到端微调、端点选优，以及 WikiText-2 PPL 和六项 `lm-eval` 评测入口。
+CoS-VQ is a self-contained reproduction package for shared-scale codeword optimization and end-to-end LLM quantization. The implementation uses the internal method name **V19 + E2E**. It includes GSQ/NoWag baselines, calibration-cache adapters, V19 scale and codeword-assignment optimization, fine-tuning with fixed discrete assignments, checkpoint selection, and evaluation on WikiText-2 and six `lm-eval` tasks.
 
-## 文档导航
+## Documentation
 
-- [V19 + E2E 完整实验与精度复现指南](docs/V19_E2E_REPRODUCTION.md)：方法阶段、冻结协议、六模型命令、输出和验收标准。
-- [每个模型的独立精度复现入口](scripts/reproduce_accuracy/README.md)：六个模型 launcher 对照表。
-- [代码与实验结果保留说明](docs/ARTIFACTS_AND_RESULTS.md)：公开包边界、运行产物和历史结果归档规则。
-- [机器可读六模型协议](configs/reproduction/v19_e2e_six_models.json)：所有正式参数的唯一配置来源。
+- [V19 + E2E reproduction guide](docs/V19_E2E_REPRODUCTION.md) (Chinese): method stages, frozen protocol, commands for all six models, outputs, and completion criteria.
+- [Per-model reproduction launchers](scripts/reproduce_accuracy/README.md) (English): a launcher for each supported model.
+- [Artifacts and historical results](docs/ARTIFACTS_AND_RESULTS.md) (Chinese): package contents, generated artifacts, and retention rules.
+- [Six-model reproduction protocol](configs/reproduction/v19_e2e_six_models.json): the single source of truth for experiment parameters.
 
-最短安全检查命令：
-
-```bash
-cd Cos_VQ
-./scripts/reproduce_accuracy/qwen3_4b.sh \
-  --run-stamp 20260920_120000 --dry-run
-```
-
-`--dry-run` 不下载模型或数据、不启动训练或评测，也不创建结果目录。确认命令图和本机路径后，去掉该参数执行正式复现。
-
-六模型协议冻结在 `configs/reproduction/v19_e2e_six_models.json`。总控脚本按模型顺序执行整个流水线，记录模型与数据集修订号、配置哈希、命令、日志和端点结果；脚本拒绝覆盖已有 campaign 目录。模型权重、数据缓存、checkpoint 和日志只写到本目录下的 `experiments/results/`，汇总复现报告写到 `report/`。这些运行产物不随代码包提交。
-
-## 获取代码
+## Get the code
 
 ```bash
 git clone https://github.com/xzktx003/Cos_VQ.git
 cd Cos_VQ
 ```
 
-在父研究仓库中，本代码包位于 `code/Cos_VQ/`。
+The repository is currently private; cloning requires access to it. In the parent research workspace, this package is located at `code/Cos_VQ/`. Run the commands below from the package root.
 
-## 环境准备
+## Environment setup
 
-需要 Python 3.10+、支持 BF16 的 CUDA GPU、`uv` 和 Hugging Face Hub 访问权限。Llama 模型可能受 Hugging Face 授权限制，运行者必须先在 Hugging Face 接受对应模型条款并完成本机登录；本包不会保存访问令牌。
+You need Python 3.10 or newer, a CUDA GPU with BF16 support, `uv`, and access to Hugging Face Hub. Llama models may require approval on Hugging Face: accept the applicable model terms and authenticate locally before running. The package does not store access tokens.
 
 ```bash
-cd Cos_VQ
 uv sync --frozen
 ```
 
-此目录中的 `pyproject.toml` / `uv.lock` 随当前代码快照提供；它们并非对历史论文运行环境的逐项重建。历史实验记录使用过 Torch 2.4、Transformers 4.52.4 和 `lm-eval` 0.4.4，而当前锁文件来自较新的代码环境。因此，在没有独立环境对照验证前，不应声称仅凭当前锁文件即可逐位复现历史指标。本次整理没有安装依赖、下载模型/数据或启动训练和评测。
+The included `pyproject.toml` and `uv.lock` describe the current code snapshot. Historical experiments used Torch 2.4, Transformers 4.52.4, and `lm-eval` 0.4.4; the current lockfile comes from a newer environment. Bitwise reproduction of historical metrics has not been established with this lockfile. Release validation covered static checks, command previews, and CPU unit tests; it did not install the runtime dependencies or rerun the full CUDA experiments.
 
-## 运行
+## Preview the pipeline
 
-先只预览命令计划：
+Start with a single-model dry run:
+
+```bash
+uv run --frozen bash scripts/reproduce_accuracy/qwen3_4b.sh \
+  --run-stamp 20261012_120000 --dry-run
+```
+
+The pipeline's `--dry-run` option prints the complete command plan without downloading models or datasets, launching training or evaluation, or creating result directories. When used through `uv run`, `uv` may first prepare or synchronize the Python environment. Once that environment is installed, a preview without environment synchronization can be run with:
+
+```bash
+.venv/bin/python -m scripts.reproduce_v19_e2e \
+  --model qwen3-4b --run-stamp 20261012_120000 --dry-run
+```
+
+To preview all six models:
 
 ```bash
 uv run --frozen python -m scripts.reproduce_v19_e2e \
-  --model all --run-stamp 20260916_120000 --dry-run
+  --model all --run-stamp 20261012_130000 --dry-run
 ```
 
-确认本机环境、模型访问权限和 GPU 资源后，按同一命令去掉 `--dry-run` 才会真正运行。`--model` 可选 `all` 或配置中的单个模型名；单模型可用 `--model-path` 提供已下载模型快照，Llama-3.1 可额外用 `--reference-model-path` 指定参考 tokenizer 快照。可用 `--cuda-visible-devices` 选择物理 GPU；`--split-gpus` 仅将 V19 开发集评分和最终评测拆到恰好两张可见 GPU，量化、V19 优化和 E2E 微调仍按协议在一张可见 GPU 上运行。
+## Run the full pipeline
 
-不同模型使用其配置规定的缓存与训练预算。Llama-3.1 还会构建 FineWeb-Edu + C4 guard 缓存、执行 task-local assignment 校准，并启用 group-scale E2E；Qwen3-8B 与 Llama-3.1 包含 scale→E2E 支路。V19 在 standard / wide 两组候选间按独立 development NLL 选择，E2E 在两个学习率和初始端点间按 development NLL 选择。最终评测固定 WikiText-2 test、seqlength 2048 与六项 0-shot 任务。
-
-每个论文模型也有独立入口，位于 `scripts/reproduce_accuracy/`。这些脚本可从任意目录调用，参数原样传递给总控脚本。例如：
+After checking the command plan, model access, and GPU resources, remove `--dry-run` to execute the pipeline. For example:
 
 ```bash
-./scripts/reproduce_accuracy/qwen3_8b.sh \
-  --run-stamp 20260920_120000 --dry-run
+uv run --frozen bash scripts/reproduce_accuracy/qwen3_4b.sh \
+  --run-stamp 20261012_140000 --cuda-visible-devices 0
 ```
 
-模型与脚本的完整对应表见 [`scripts/reproduce_accuracy/README.md`](scripts/reproduce_accuracy/README.md)。所有新运行的 checkpoint、原始精度 JSON、日志和报告均保存在本包内；父研究仓库已有实验结果保持原位，不移动、不覆盖、不删除。
+Choose a fresh timestamp in `YYYYMMDD_HHMMSS` format for each run. The orchestrator refuses to overwrite an existing campaign directory.
 
-RedPajama、FineWeb-Edu、C4 与 WikiText-2 默认从 Hugging Face 数据集仓库读取。总控脚本会在真实运行开始时将配置里的可变数据集分支解析为不可变 commit SHA，并写入 campaign manifest；也可通过 `--redpajama-revision`、`--fineweb-revision`、`--c4-revision`、`--wikitext-revision` 显式指定数据集 revision。Qwen3-4B/8B 模型 revision 已固定；其余 `main` 模型引用的实际 snapshot commit 会记录在 manifest 中。若需再次使用同一模型快照，可对单模型运行传入 `--model-path` 指向该本地 snapshot。
+Each model follows the frozen protocol in `configs/reproduction/v19_e2e_six_models.json`:
 
-## 检查与测试
+1. Resolve model snapshots and freeze dataset revisions.
+2. Build calibration and training caches.
+3. Generate the Vector-GSQ baseline checkpoint.
+4. Run scale-only and V19 candidate optimization, then select the V19 checkpoint using held-out development NLL.
+5. Fine-tune the baseline and V19 checkpoints with fixed discrete assignments, and select an endpoint using development NLL.
+6. Evaluate the selected endpoints and generate a reproduction report.
 
-以下命令只做语法/单元测试，不执行论文实验：
+Models run sequentially when `--model all` is selected. The orchestrator records model and dataset revisions, configuration hashes, commands, logs, and endpoint results.
+
+### Supported models and options
+
+The package provides launchers for Qwen3-4B, Qwen3-8B, Qwen3-14B, Qwen3-32B, Llama-2-7B, and Llama-3.1-8B-Instruct. See the [launcher table](scripts/reproduce_accuracy/README.md) for their filenames. The launchers can be invoked from any working directory and forward their arguments to the orchestrator.
+
+- `--model`: select `all` or one model key from the configuration.
+- `--model-path`: use a local model snapshot for a single-model run.
+- `--reference-model-path`: supply the reference tokenizer snapshot for Llama-3.1.
+- `--cuda-visible-devices`: select physical GPU indices.
+- `--split-gpus`: use exactly two visible GPUs for V19 development scoring and final evaluation. Quantization, V19 optimization, and E2E fine-tuning use one visible GPU according to the protocol.
+
+Cache sizes and training budgets are defined per model. Llama-3.1 additionally builds a FineWeb-Edu cache with a C4 guard, calibrates task-local assignments, and enables group-scale E2E fine-tuning. Qwen3-8B and Llama-3.1 also include a scale-to-E2E branch. V19 selection compares the standard and wide candidates using development NLL. E2E selection compares two learning rates and includes the initial checkpoint as an eligible endpoint.
+
+### Evaluation protocol
+
+Final evaluation uses WikiText-2 **test** perplexity with `seqlength=2048` and zero-shot accuracy on:
+
+- ARC-Challenge
+- ARC-Easy
+- HellaSwag
+- LAMBADA OpenAI
+- PIQA
+- WinoGrande
+
+The six-model configuration defines the evaluation parameters. Raw task metrics and endpoint summaries are written as JSON.
+
+### Models and dataset revisions
+
+RedPajama, FineWeb-Edu, C4, and WikiText-2 are fetched from Hugging Face dataset repositories by default. At the start of an actual run, mutable dataset references are resolved to immutable commit SHAs and recorded in the campaign manifest. Explicit revisions can be provided with `--redpajama-revision`, `--fineweb-revision`, `--c4-revision`, and `--wikitext-revision`.
+
+Qwen3-4B and Qwen3-8B model revisions are pinned in the configuration. Other model references currently use `main`; their resolved snapshot commits are recorded in the manifest. To reuse the same model snapshot, pass its local path through `--model-path` for a single-model run.
+
+## Outputs and historical results
+
+By default, generated calibration and training caches, checkpoints, evaluation JSON, and logs are stored under:
+
+```text
+experiments/results/v19_e2e/<RUN_STAMP>/
+```
+
+The automatic report is written to:
+
+```text
+report/<RUN_STAMP>_v19_e2e_reproduction.md
+```
+
+Downloaded source models and datasets use the Hugging Face cache settings.
+
+Large runtime artifacts are excluded from Git. Compact reference results and release-validation records are included separately. The [historical six-model result snapshot](experiments/results/reference/20260914_122219_v19_e2e_six_model_core_aggregate.json) contains archived results from September 14, 2026; it was not generated by the release-validation run. Historical evidence paths in that JSON are provenance records, not prerequisites for a new pipeline run.
+
+Existing experiment artifacts in the parent research workspace are retained in their original locations. New pipeline runs do not move, overwrite, or delete them.
+
+## Checks and tests
+
+Run CPU unit tests from a development environment with `pytest` installed:
 
 ```bash
 python -m pytest -q
 ```
 
-`pytest` 是测试专用工具，不属于运行依赖；请在开发环境预先安装。代码整理验收只运行静态检查、命令 dry-run 和 CPU 单元测试；完整 CUDA 训练、数据集下载、WikiText-2 与 `lm-eval` 结果均未在本次运行。
-原研究仓库中 4 项依赖一次性本地 shell launcher 的合同测试标记为 skip；这些 launcher 未复制到独立包，六模型编排合同由 `test_reproduction_pipeline.py` 覆盖。
+For the reproduction-orchestration checks only:
 
-## 许可
+```bash
+python -m pytest -q tests/test_reproduction_pipeline.py
+```
 
-本包根目录 `LICENSE` 适用于相应项目文件。`third_party/NoWag/` 包含 GPL-3.0 第三方代码，适用其自带许可；另见 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)。模型和数据集另受各自上游许可与访问条款约束。
+`pytest` is a development tool and is not included in the runtime dependencies. Four tests that depend on one-off shell launchers from the original research workspace are skipped in this standalone package. The six-model orchestration is covered by `test_reproduction_pipeline.py`.
+
+CPU tests and dry runs validate the command plan and package structure. Full CUDA training, dataset downloads, WikiText-2 evaluation, and `lm-eval` accuracy measurements require a separate experiment run.
+
+## License
+
+The root [LICENSE](LICENSE) applies to the corresponding project files. Vendored code under `third_party/NoWag/` is covered by its own GPL-3.0 license; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Models and datasets retain their upstream licenses and access terms.
