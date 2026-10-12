@@ -1,5 +1,12 @@
 # Cos_VQ 发布记录
 
+## Public repository release (2026-10-12T18:13:06.987153+08:00)
+
+- The user requested public visibility, superseding the earlier private-repository setting.
+- Repository: `xzktx003/Cos_VQ`, branch `main`; GitHub API confirms `private=false` and `visibility=public`.
+- Base commit: `137d12b515276e8269c81a8cf7b3be71cd9235cc`. The main README now describes public cloning access.
+- Verification: GitHub visibility and documentation whitespace checked; algorithm code is unchanged.
+
 ## English README update (2026-10-12T17:47:52.455865+08:00)
 
 - Algorithm repository: `xzktx003/Cos_VQ`, branch `main`, private.

@@ -16,7 +16,7 @@ git clone https://github.com/xzktx003/Cos_VQ.git
 cd Cos_VQ
 ```
 
-The repository is currently private; cloning requires access to it. In the parent research workspace, this package is located at `code/Cos_VQ/`. Run the commands below from the package root.
+The repository is public and can be cloned without repository access approval. In the parent research workspace, this package is located at `code/Cos_VQ/`. Run the commands below from the package root.
 
 ## Environment setup
 
